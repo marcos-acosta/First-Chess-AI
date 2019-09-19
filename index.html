@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Chess</title>
+  <link rel="stylesheet" href="css/chessboard-0.3.0.min.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+  <script src="js/chessboard-0.3.0.min.js"></script>
+  <script src="engine.js"></script>
+  <style>
+    body {
+      background-color: #202020;
+      font-family: "Lato", sans-serif;
+      font-size: 16px;
+    }
+
+    div.black {
+      background-color: #353535
+    }
+
+    div.white_white {
+      padding: 15px 15px;
+      background-color: #969696;
+    }
+
+    div.actually_black {
+      padding: 15px 15px;
+      width: 200px;
+      background-color: #111111
+    }
+
+    div.white {
+      padding: 15px 15px;
+      width: 200px;
+      /* background-color: #36a0e7; */
+      background: linear-gradient(to top left, #3399ff 0%, #3366ff 100%);
+    }
+
+    div.actually_white {
+      padding: 15px 15px;
+      width: 200px;
+      /* background-color: #36a0e7; */
+      background-color: #202020;
+    }
+
+    table,
+    th,
+    td {
+      /* border: 1px solid black; */
+      border-collapse: collapse;
+      text-align: left;
+      padding: 10px 10px;
+    }
+
+    button {
+      background-color: #353535;
+      /* Green */
+      border: none;
+      color: white;
+      padding: 15px 32px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      -webkit-transition-duration: 0.4s;
+      /* Safari */
+      transition-duration: 0.4s;
+    }
+
+    button:hover {
+      background-color: rgb(85, 85, 85);
+      /* Green */
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+
+  <font color="white">
+    <center>
+      <h1>
+        <div class="white" style="width: 470px">
+          TutorAI
+        </div>
+      </h1>
+      <h3>
+        <i>
+          <font color=#707070>
+            An open-source instructional chess engine
+          </font>
+        </i>
+      </h3>
+      <div id="board" style="width: 500px"></div>
+      <br><br>
+      <div class="white" id="loading"><b>Calculating...</b><br></div>
+      <br><br>
+      <button id="explain_button" onclick="make_appear()">
+        Hide explanation
+      </button>
+
+      <div class="black" id="explain">
+        <br>
+
+        <table style="width:100%">
+          <tr>
+            <th>
+              <div class="white">
+                Board before engine move
+                <br><br>
+                <div id="preboard" class="board" style="width: 200px"></div>
+              </div>
+            </th>
+            <th>
+              Engine move
+              <br><br>
+              <div id="board0" class="board" style="width: 200px"></div>
+            </th>
+            <th>
+              Reply to engine
+              <br><br>
+              <div id="board1" class="board" style="width: 200px"></div>
+            </th>
+            <th>
+              Engine reply
+              <br><br>
+              <div id="board2" class="board" style="width: 200px"></div>
+            </th>
+            <th>
+              <div class="white">
+                Reply to engine
+                <br><br>
+                <div id="board3" class="board" style="width: 200px"></div>
+              </div>
+            </th>
+          </tr>
+          <tr>
+            <th colspan="5">
+              <div class="actually_white" style="width: 98%">
+                <center>
+                  <b>EXPLANATION</b>
+                  <font color="gray"> (depth = 4)</font>
+                </center>
+                <font color="#3399ff">
+                  <p id="exp" style="font-weight: 1000; font-size: 18px;">
+
+                  </p>
+                </font>
+                <center>
+                  <button id="explain_explanation" onclick="show_info()">
+                    What's this explanation telling me?
+                  </button>
+                  <br>
+                </center>
+                <div class="black" style="padding: 15px 15px; font-weight: 500;" id="explain_explain">
+                  <p></p>
+                  Glad you asked!
+                  <font color="#3399ff">
+                    TutorAI
+                  </font>
+                  works by generating a tree of all legal moves,
+                  then evaluating all the deepest-level boards in the tree by considering both material and position.
+                  At that point, the engine selects the line that results in what it thinks the best play by both
+                  players is (shown above).
+                  </p>
+                  <p>
+                    <font color="gray">
+                      (Note: You may notice that
+                      <font color="#3399ff">
+                        TutorAI
+                      </font>
+                      sometimes thinks
+                      you'll make a very confusing move at the very end of its evaluation– this is because it cannot
+                      look
+                      one move further so any move that captures material is viewed as a good move)
+                    </font>
+                  </p>
+                  <p>
+                    The explanation you see is essentially a report of the difference in material and position of
+                    certain
+                    types of pieces, compared between the board before
+                    <font color="#3399ff">
+                      TutorAI
+                    </font>
+                    moved and two
+                    turns after it moves. In other words, it tells you the benefits of this move that convinced the
+                    engine to choose it. For black, it tells you which piece type(s) is/are improved materially and/or
+                    positionally, and inversely for white, it tells you which piece type(s) is/are worsened matierlaly
+                    and/or positionally.
+                  </p>
+                  <p>
+                    With this information, you can get a good idea of why
+                    <font color="#3399ff">
+                      TutorAI
+                    </font>
+                    makes the moves it does, and in turn, start applying the same proactive thinking to your own
+                    playing. Have fun!
+                  </p>
+                </div>
+              </div>
+            </th>
+          </tr>
+        </table>
+        <br>
+      </div>
+
+  </font>
+  </center>
+
+  <script src="chess.js"></script>
+
+  <script>
+    show_info();
+    make_thing_appear("loading");
+    make_thing_appear("explain_explanation");
+    var preboard, board0, board, board1, board2, board3;
+    var pregame = new Chess();
+    var game0 = new Chess();
+    var game = new Chess();
+    var game1 = new Chess();
+    var game2 = new Chess();
+    var game3 = new Chess();
+    var eng = new Engine(4, game);
+    var statusEl = $('#status');
+    var fenEl = $('#fen');
+    var pgnEl = $('#pgn');
+    var debugEl = $('#debug');
+
+    var removeGreySquares = function () {
+      $('#board .square-55d63').css('background', '');
+    };
+
+    var greySquare = function (square) {
+      var squareEl = $('#board .square-' + square);
+
+      var background = '#a9a9a9';
+      if (squareEl.hasClass('black-3c85d') === true) {
+        background = '#696969';
+      }
+
+      squareEl.css('background', background);
+    };
+
+    // do not pick up pieces if the game is over
+    // only pick up pieces for the side to move
+    var onDragStart = function (source, piece, position, orientation) {
+      if (game.game_over() === true ||
+        (game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+        (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+        return false;
+      }
+    };
+
+    var onDrop = function (source, target) {
+      removeGreySquares();
+      // see if the move is legal
+      var move = game.move({
+        from: source,
+        to: target,
+        promotion: 'q' // NOTE: always promote to a queen for example simplicity
+      });
+
+      // illegal move
+      if (move === null) return 'snapback';
+
+      // set_loading(true);
+      make_thing_appear("loading");
+
+      window.setTimeout(makeEngineMove, 250);
+
+      updateStatus();
+    };
+
+    var onMouseoverSquare = function (square, piece) {
+      // get list of possible moves for this square
+      var moves = game.moves({
+        square: square,
+        verbose: true
+      });
+
+      // exit if there are no moves available for this square
+      if (moves.length === 0) return;
+
+      // highlight the square they moused over
+      greySquare(square);
+
+      // highlight the possible squares for this piece
+      for (var i = 0; i < moves.length; i++) {
+        greySquare(moves[i].to);
+      }
+    };
+
+    var onMouseoutSquare = function (square, piece) {
+      removeGreySquares();
+    };
+
+    // update the board position after the piece snap 
+    // for castling, en passant, pawn promotion
+    var onSnapEnd = function () {
+      board.position(game.fen());
+    };
+
+    var updateStatus = function () {
+      var status = '';
+
+      var moveColor = 'White';
+      if (game.turn() === 'b') {
+        moveColor = 'Black';
+      }
+
+      // checkmate?
+      if (game.in_checkmate() === true) {
+        status = 'Game over, ' + moveColor + ' is in checkmate.';
+      }
+
+      // draw?
+      else if (game.in_draw() === true) {
+        status = 'Game over, drawn position';
+      }
+
+      // game still on
+      else {
+        status = moveColor + ' to move';
+
+        // check?
+        if (game.in_check() === true) {
+          status += ', ' + moveColor + ' is in check';
+        }
+      }
+
+      // alert(game.get('a3'));
+      statusEl.html(status);
+      fenEl.html(game.fen());
+      pgnEl.html(game.pgn());
+      // eng.positional_evaluation();
+    };
+
+    function set_loading(on) {
+      if (on === true) {
+        document.getElementById('loading').innerHTML = "Calculating...<br>";
+      } else {
+        document.getElementById('loading').innerHTML = "";
+      }
+    }
+
+    function make_appear() {
+      var x = document.getElementById("explain");
+      if (x.style.display === "none") {
+        x.style.display = "block";
+        document.getElementById("explain_button").innerHTML = "Hide explanation";
+      } else {
+        x.style.display = "none";
+        document.getElementById("explain_button").innerHTML = "Show explanation";
+      }
+    }
+
+    function show_info() {
+      var x = document.getElementById("explain_explain");
+      if (x.style.display === "none") {
+        x.style.display = "block";
+        document.getElementById("explain_explanation").innerHTML = "Hide info";
+      } else {
+        x.style.display = "none";
+        document.getElementById("explain_explanation").innerHTML = "What's this explanation telling me?";
+      }
+    }
+
+    function make_thing_appear(id) {
+      var x = document.getElementById(id);
+      if (x.style.display === "none") {
+        x.style.display = "block";
+      } else {
+        x.style.display = "none";
+      }
+    }
+
+    function set_explanation_text(text, append) {
+      var x = document.getElementById("exp");
+      if (append === true) {
+        x.innerHTML += text;
+      } else {
+        x.innerHTML = text;
+      }
+    }
+
+    // function play_audio() {
+    //   var audio_names = ["suck.mp3", "databases.mp3", "mistake.mp3", "developers.mp3", "dedicated.mp3", "go_fish.mp3", "parents.mp3"];
+    //   var index = Math.floor(Math.random() * audio_names.length);
+    //   var audio = new Audio(audio_names[index]);
+    //   audio.play();
+    // }
+
+    function explain(x) {
+
+      //MATERIAL EXPLANATION
+      // if (x[0] < 0) {
+      //   set_explanation_text("MATERIAL:<br><font color='white'>The engine predicts that this move gains the most material compared to the previous board.</font><br><br>", true);
+      // } if (x[0] == 0) {
+      //   set_explanation_text("MATERIAL:<br><font color='white'>The engine predicts that this move will keep the material equal.</font><br><br>", true);
+      // }
+
+      set_explanation_text(x[1], true);
+
+      // //CENTER CONTROL
+      // if (x[1] < 0) {
+      //   set_explanation_text("<br><br>CENTER CONTROL:<br><font color='white'>The engine predicts that this move will increase center control.</font>", true);
+      // } if (x[1] == 0) {
+      //   set_explanation_text("<br><br>CENTER CONTROL:<br><font color='white'>The engine predicts that this move will maintain center control.</font>", true);
+      // }
+    }
+
+    var cfg = {
+      draggable: true,
+      position: 'start',
+      onDragStart: onDragStart,
+      onDrop: onDrop,
+      onMouseoutSquare: onMouseoutSquare,
+      onMouseoverSquare: onMouseoverSquare,
+      onSnapEnd: onSnapEnd
+    };
+
+    var small_board_cfg = {
+      showNotation: false,
+      draggable: false,
+      position: 'start',
+      onDragStart: onDragStart,
+      onDrop: onDrop,
+      onMouseoutSquare: onMouseoutSquare,
+      onSnapEnd: onSnapEnd
+    };
+
+    board = ChessBoard('board', cfg);
+    preboard = ChessBoard('preboard', small_board_cfg);
+    board0 = ChessBoard('board0', small_board_cfg);
+    board1 = ChessBoard('board1', small_board_cfg);
+    board2 = ChessBoard('board2', small_board_cfg);
+    board3 = ChessBoard('board3', small_board_cfg);
+
+    var makeEngineMove = function () {
+      make_thing_appear("explain_explanation");
+      var book_move = false;
+      //Get best move index and moves
+      var x = eng.pickBestMove();
+
+      //Best move index
+      var move = x[0];
+
+      if (x[1] === 'book move') {
+        //Do different stuff if it's a book move
+        book_move = true;
+
+        //Move
+        game.move(move);
+        board.position(game.fen());
+
+        set_explanation_text("This move is a commonly accepted opening move.", false);
+        make_thing_appear("explain_explanation");
+      } else {
+        set_explanation_text("", false);
+
+        //Next moves
+        var next_moves = x[1].get_move_history();
+
+        //Configure the pre-move board
+        pregame.load(game.fen());
+        preboard.position(pregame.fen());
+
+        //Move
+        game.move(move);
+        board.position(game.fen());
+
+        explain(x[2]);
+
+        //Configure future boards
+        {
+          //Configure the current board (below tho)
+          game0.load(game.fen());
+          board0.position(game0.fen());
+
+          //Configure the first board
+          game1.load(game.fen());
+          game1.move({ from: next_moves[1].from, to: next_moves[1].to, promotion: next_moves[1].promotion });
+          board1.position(game1.fen());
+
+          //Configure the second board
+          game2.load(game1.fen());
+          game2.move({ from: next_moves[2].from, to: next_moves[2].to, promotion: next_moves[2].promotion });
+          board2.position(game2.fen());
+
+          //Configure the third board
+          game3.load(game2.fen());
+          game3.move({ from: next_moves[3].from, to: next_moves[3].to, promotion: next_moves[3].promotion });
+          board3.position(game3.fen());
+        }
+      }
+
+      // play_audio();
+
+      make_thing_appear("loading");
+    };
+
+    var get_square_number = function (square) {
+      var num;
+      var letter = square.charAt(0);
+      var number = square.charAt(1);
+      var letters = 'abcdefgh';
+      for (var i = 0; i < 8; i++) {
+        if (letter === letters.substring(i, i + 1)) {
+          num = i;
+          break;
+        }
+      }
+      num += (8 - number) * 16;
+      return num;
+    }
+
+    updateStatus();
+  </script>
+</body>
+
+</html>
